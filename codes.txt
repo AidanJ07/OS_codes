@@ -1,0 +1,960 @@
+FCFS
+
+#include <stdio.h>
+
+struct process
+{
+    int process_id, at, bt, tat, wt, ct;
+};
+int main()
+{
+    struct process p[100], temp;
+    int n, i, j, data, ct;
+    printf("Enter the total number of processes:");
+    scanf("%d", &n);
+    for (i = 0; i < n; i++)
+    {
+        p[i].process_id = i + 1;
+        printf("Enter the arrival time of process %d:", i + 1);
+        scanf("%d", &p[i].at);
+        printf("Enter the burst time of process %d:", i + 1);
+        scanf("%d", &p[i].bt);
+    }
+
+    for (i = 0; i < n - 1; i++)
+    {
+        for (j = 0; j < n - i - 1; j++)
+        {
+            if (p[j].at > p[j + 1].at)
+            {
+                //  printf("Swapping");
+                temp = p[j];
+                p[j] = p[j + 1];
+                p[j + 1] = temp;
+            }
+        }
+    }
+    p[0].ct = p[0].at + p[0].bt;
+    p[0].tat = p[0].ct - p[0].at;
+    p[0].wt = p[0].tat - p[0].bt;
+
+    for (i = 1; i < n; i++)
+    {
+        ct = p[i - 1].ct;
+        if (p[i].at > ct)
+        {
+            p[i].ct = p[i].at + p[i].bt;
+        }
+        else
+        {
+            p[i].ct = ct + p[i].bt;
+        }
+        p[i].tat = p[i].ct - p[i].at;
+        p[i].wt = p[i].tat - p[i].bt;
+    }
+    printf("Process id\tArrival Time\tBurst Time\tCompletion Time\tTurn A Time\tWaiting Time\n");
+    for (i = 0; i < n; i++)
+    {
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", p[i].process_id, p[i].at, p[i].bt, p[i].ct, p[i].tat, p[i].wt);
+    }
+}
+
+
+sjf
+
+
+#include <stdio.h>
+void findwt(int n, int bt[], int wt[])
+{
+    wt[0] = 0;
+    for (int i = 1; i < n + 1; i++)
+    {
+        wt[i] = bt[i - 1] + wt[i - 1];
+    }
+}
+void findtt(int n, int bt[], int wt[], int tat[])
+{
+    for (int i = 0; i < n; i++)
+    {
+        tat[i] = bt[i] + wt[i];
+    }
+}
+void findat(int n, int bt[])
+{
+    int wt[100], tat[100];
+    findwt(n, bt, wt);
+    findtt(n, bt, wt, tat);
+    int total_wt = 0, total_tat = 0;
+    printf("Process\tBurst Time\tWaiting Time\tTurnaround Time\n");
+    for (int i = 0; i < n; i++)
+    {
+        printf("\nP%d\t\t%d\t\t%d\t\t%d\t\t", i, bt[i], wt[i], tat[i]);
+        total_wt += wt[i];
+        total_tat += tat[i];
+    }
+    float s = (float)total_wt / n;
+    float t = (float)total_tat / n;
+    printf("\nTotal Waiting Time:%d\n", total_wt);
+    printf("Total Turnaround Time:%d\n", total_tat);
+    printf("Avg Waiting Time:%f\n", s);
+    printf("Avg Turnaround Time:%f\n", t);
+}
+void sort(int n, int bt[])
+{
+    int temp;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n - i - 1; j++)
+        {
+            if (bt[j] > bt[j + 1])
+            {
+                temp = bt[j];
+                bt[j] = bt[j + 1];
+                bt[j + 1] = temp;
+            }
+        }
+    }
+}
+void main()
+{
+    printf("Enter total number of processes:");
+    int total;
+    scanf("%d", &total);
+    printf("Enter burst times:");
+
+    int burst_time[100];
+    for (int i = 0; i < total; i++)
+    {
+        scanf("%d", &burst_time[i]);
+    }
+    sort(total, burst_time);
+    findat(total, burst_time);
+}
+
+
+priority
+
+#include <stdio.h>
+struct Process
+{
+    int pid;
+    int priority;
+    int b_t;
+    int w_t;
+    int t_t;
+};
+void sort(struct Process p[], int n)
+{
+    struct Process temp;
+    for (int i = 0; i < n - 1; i++)
+    {
+        for (int j = 0; j < n - i - 1; j++)
+        {
+            if (p[j].priority > p[j + 1].priority)
+            {
+                temp = p[j];
+                p[j] = p[j + 1];
+                p[j + 1] = temp;
+            }
+        }
+    }
+}
+void find_time(struct Process p[], int n)
+{
+    p[0].w_t = 0;
+    p[0].t_t = p[0].b_t;
+    for (int i = 1; i < n; i++)
+    {
+        p[i].w_t = p[i - 1].w_t + p[i - 1].b_t;
+        p[i].t_t = p[i].w_t + p[i].b_t;
+    }
+}
+// void gantt(struct Process p[], int n)
+// {
+//     printf("\nGantt Chart\n");
+//     printf("-------------------------\n");
+//     for (int i = 0; i < n; i++)
+//     {
+//         printf("| P%d ", p[i].pid);
+//     }
+//     printf("|\n");
+//     for (int i = 0; i < n; i++)
+//     {
+//         if (i == 0)
+//         {
+//             printf("0 ", p[i].t_t);
+//         }
+//         printf("%d", p[i].t_t);
+//     }
+//     printf("\n");
+// }
+void main()
+{
+    int n;
+    printf("Enter no of processes:");
+    scanf("%d", &n);
+    struct Process p[n];
+    for (int i = 0; i < n; i++)
+    {
+        p[i].pid = i + 1;
+        printf("Enter Priority for P%d:", p[i].pid);
+        scanf("%d", &p[i].priority);
+        printf("Enter Burst Time for Process P%d", p[i].pid);
+        scanf("%d", &p[i].b_t);
+    }
+    sort(p, n);
+    find_time(p, n);
+    // gantt(p, n);
+    float avg_wt = 0, avg_tt = 0;
+    for (int i = 0; i < n; i++)
+    {
+        avg_wt += p[i].w_t;
+        avg_tt += p[i].t_t;
+    }
+    avg_wt /= n;
+    avg_tt /= n;
+    printf("Avg Waiting Time:%.2f ms", avg_wt);
+    printf("Avg Turnaround Time:%.2f ms", avg_tt);
+}
+
+
+rr
+
+#include <stdio.h>
+
+void findWaitingTime(int processes[], int n, int bt[], int wt[], int quantum)
+{
+    int rem_bt[n];
+    for (int i = 0; i < n; i++)
+        rem_bt[i] = bt[i];
+    int t = 0;
+    while (1)
+    {
+        int done = 1;
+        for (int i = 0; i < n; i++)
+        {
+            if (rem_bt[i] > 0)
+            {
+                done = 0;
+                if (rem_bt[i] > quantum)
+                {
+                    t += quantum;
+                    rem_bt[i] -= quantum;
+                }
+                else
+                {
+                    t += rem_bt[i];
+                    wt[i] = t - bt[i];
+                    rem_bt[i] = 0;
+                }
+            }
+        }
+        if (done == 1)
+            break;
+    }
+}
+void findTurnAroundTime(int processes[], int n, int bt[], int wt[], int tat[])
+{
+    for (int i = 0; i < n; i++)
+        tat[i] = bt[i] + wt[i];
+}
+void findAvgTime(int processes[], int n, int bt[], int quantum)
+{
+    int wt[n], tat[n];
+    findWaitingTime(processes, n, bt, wt, quantum);
+    findTurnAroundTime(processes, n, bt, wt, tat);
+    printf("Processes Burst time Waiting time Turnaround time\n");
+    int total_wt = 0, total_tat = 0;
+    for (int i = 0; i < n; i++)
+    {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        printf(" %d\t\t%d\t %d\t\t %d\n", processes[i], bt[i], wt[i], tat[i]);
+    }
+    printf("Average waiting time = %.2f\n", (float)total_wt / (float)n);
+    printf("Average turnaround time = %.2f\n", (float)total_tat / (float)n);
+}
+int main()
+{
+    int n;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    int processes[n], burst_time[n];
+    for (int i = 0; i < n; i++)
+    {
+        processes[i] = i + 1;
+        printf("Enter burst time for process %d: ", i + 1);
+        scanf("%d", &burst_time[i]);
+    }
+    int quantum;
+    printf("Enter time quantum: ");
+    scanf("%d", &quantum);
+    findAvgTime(processes, n, burst_time, quantum);
+    return 0;
+}
+
+
+bankers
+
+
+#include <stdio.h>
+
+int alloc[30][30], max[30][30], need[30][30], avail[30], dupavail[30], seq[30];
+int vis[30], p, r;
+
+void calculateNeed() {
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            need[i][j] = max[i][j] - alloc[i][j];
+        }
+    }
+}
+
+int isSafe() {
+    int tempAvail[30];
+    int ind = 0;
+
+    for (int i = 0; i < r; i++) {
+        tempAvail[i] = avail[i];
+    }
+
+    for (int i = 0; i < p; i++) {
+        vis[i] = 0;
+    }
+
+    for (int k = 0; k < p; k++) {
+        for (int i = 0; i < p; i++) {
+            if (!vis[i]) {
+                int flag = 0;
+                for (int j = 0; j < r; j++) {
+                    if (need[i][j] > tempAvail[j]) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (!flag) {
+                    vis[i] = 1;
+                    seq[ind++] = i;
+                    for (int x = 0; x < r; x++) {
+                        tempAvail[x] += alloc[i][x];
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < p; i++) {
+        if (!vis[i]) {
+            return 0;
+        }
+    }
+
+    printf("Safe Sequence: ");
+    for (int i = 0; i < p - 1; i++) {
+        printf("P%d -- ", seq[i]);
+    }
+    printf("P%d\n", seq[p - 1]);
+    return 1;
+}
+
+int main() {
+    printf("Enter the number of processes: ");
+    scanf("%d", &p);
+    printf("Enter the number of resources: ");
+    scanf("%d", &r);
+
+    printf("Enter the allocation matrix:\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            scanf("%d", &alloc[i][j]);
+        }
+    }
+
+    printf("Enter the max matrix:\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            scanf("%d", &max[i][j]);
+        }
+    }
+
+    printf("Enter the available resources:\n");
+    for (int i = 0; i < r; i++) {
+        scanf("%d", &avail[i]);
+        dupavail[i] = avail[i];
+    }
+
+    calculateNeed();
+
+    if (!isSafe()) {
+        printf("System is not in a safe state.\n");
+        return 0;
+    }
+
+    int reqProcess, request[30], flag = 0;
+    printf("\nEnter request process: ");
+    scanf("%d", &reqProcess);
+    printf("Enter the requested resources: ");
+    for (int i = 0; i < r; i++) {
+        scanf("%d", &request[i]);
+        if (request[i] > need[reqProcess][i]) {
+            flag = 1;
+        }
+    }
+
+    if (flag) {
+        printf("Error: Process has exceeded its maximum claim.\n");
+        return 0;
+    }
+
+    for (int i = 0; i < r; i++) {
+        if (request[i] > avail[i]) {
+            printf("Resources not available. Process must wait.\n");
+            return 0;
+        }
+    }
+
+    for (int i = 0; i < r; i++) {
+        avail[i] -= request[i];
+        alloc[reqProcess][i] += request[i];
+        need[reqProcess][i] -= request[i];
+    }
+
+    printf("\nAvailable resources after request: ");
+    for (int i = 0; i < r; i++) {
+        printf("%d ", avail[i]);
+    }
+    printf("\n");
+
+    if (!isSafe()) {
+        printf("System is not in a safe state after the request. Rolling back...\n");
+    } else {
+        printf("Request granted.\n");
+    }
+
+    return 0;
+}
+
+page replacement
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_FRAMES 10
+#define MAX_PAGES 30
+
+void fifo(int pages[], int n, int capacity) {
+    int frames[MAX_FRAMES];
+    int index = 0, pageFaults = 0;
+
+    for (int i = 0; i < capacity; i++) {
+        frames[i] = -1;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int found = 0;
+        for (int j = 0; j < capacity; j++) {
+            if (frames[j] == pages[i]) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            frames[index] = pages[i];
+            index = (index + 1) % capacity;
+            pageFaults++;
+        }
+    }
+
+    printf("FIFO Page Faults: %d\n", pageFaults);
+}
+
+void optimal(int pages[], int n, int capacity) {
+    int frames[MAX_FRAMES];
+    int pageFaults = 0;
+
+    for (int i = 0; i < capacity; i++) {
+        frames[i] = -1;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int found = 0;
+
+        for (int j = 0; j < capacity; j++) {
+            if (frames[j] == pages[i]) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            int index = -1, farthest = i + 1;
+
+            for (int j = 0; j < capacity; j++) {
+                int k;
+                for (k = i + 1; k < n; k++) {
+                    if (frames[j] == pages[k]) {
+                        if (k > farthest) {
+                            farthest = k;
+                            index = j;
+                        }
+                        break;
+                    }
+                }
+
+                if (k == n) {
+                    index = j;
+                    break;
+                }
+            }
+
+            if (index == -1) {
+                for (int j = 0; j < capacity; j++) {
+                    if (frames[j] == -1) {
+                        index = j;
+                        break;
+                    }
+                }
+            }
+
+            frames[index] = pages[i];
+            pageFaults++;
+        }
+    }
+
+    printf("Optimal Page Faults: %d\n", pageFaults);
+}
+
+void lru(int pages[], int n, int capacity) {
+    int frames[MAX_FRAMES];
+    int time[MAX_FRAMES];
+    int counter = 0, pageFaults = 0;
+
+    for (int i = 0; i < capacity; i++) {
+        frames[i] = -1;
+        time[i] = 0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int found = 0;
+
+        for (int j = 0; j < capacity; j++) {
+            if (frames[j] == pages[i]) {
+                found = 1;
+                counter++;
+                time[j] = counter;
+                break;
+            }
+        }
+
+        if (!found) {
+            int lruIndex = 0, minTime = time[0];
+
+            for (int j = 1; j < capacity; j++) {
+                if (time[j] < minTime) {
+                    minTime = time[j];
+                    lruIndex = j;
+                }
+            }
+
+            frames[lruIndex] = pages[i];
+            counter++;
+            time[lruIndex] = counter;
+            pageFaults++;
+        }
+    }
+
+    printf("LRU Page Faults: %d\n", pageFaults);
+}
+
+int main() {
+    int n, capacity;
+    int pages[MAX_PAGES];
+
+    printf("Enter the number of pages: ");
+    scanf("%d", &n);
+
+    printf("Enter the reference string: ");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &pages[i]);
+    }
+
+    printf("Enter the number of frames: ");
+    scanf("%d", &capacity);
+
+    fifo(pages, n, capacity);
+    optimal(pages, n, capacity);
+    lru(pages, n, capacity);
+
+    return 0;
+}
+
+disk scheduling
+
+#include <stdio.h>
+#include <stdlib.h>
+
+void fcfs(int requests[], int n, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+    for (int i = 0; i < n; i++) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+    printf("FCFS Total Seek Count: %d\n", seek_count);
+}
+
+void sstf(int requests[], int n, int head) {
+    int seek_count = 0;
+    int distance;
+    int completed[n];
+    for (int i = 0; i < n; i++)
+        completed[i] = 0;
+
+    for (int i = 0; i < n; i++) {
+        int min = 10000, index = -1;
+        for (int j = 0; j < n; j++) {
+            if (!completed[j]) {
+                distance = abs(requests[j] - head);
+                if (distance < min) {
+                    min = distance;
+                    index = j;
+                }
+            }
+        }
+        seek_count += min;
+        head = requests[index];
+        completed[index] = 1;
+    }
+    printf("SSTF Total Seek Count: %d\n", seek_count);
+}
+
+void scan(int requests[], int n, int head, int disk_size) {
+    int seek_count = 0;
+    int distance, cur_track;
+
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (requests[i] > requests[j]) {
+                int temp = requests[i];
+                requests[i] = requests[j];
+                requests[j] = temp;
+            }
+        }
+    }
+
+    int index;
+    for (index = 0; index < n; index++) {
+        if (requests[index] > head)
+            break;
+    }
+
+    for (int i = index; i < n; i++) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    seek_count += abs((disk_size - 1) - head);
+    head = disk_size - 1;
+
+    for (int i = index - 1; i >= 0; i--) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    printf("SCAN Total Seek Count: %d\n", seek_count);
+}
+
+void cscan(int requests[], int n, int head, int disk_size) {
+    int seek_count = 0;
+    int distance, cur_track;
+
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (requests[i] > requests[j]) {
+                int temp = requests[i];
+                requests[i] = requests[j];
+                requests[j] = temp;
+            }
+        }
+    }
+
+    int index;
+    for (index = 0; index < n; index++) {
+        if (requests[index] > head)
+            break;
+    }
+
+    for (int i = index; i < n; i++) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    seek_count += abs((disk_size - 1) - head);
+    head = 0;
+    seek_count += disk_size - 1;
+
+    for (int i = 0; i < index; i++) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    printf("CSCAN Total Seek Count: %d\n", seek_count);
+}
+
+void look(int requests[], int n, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (requests[i] > requests[j]) {
+                int temp = requests[i];
+                requests[i] = requests[j];
+                requests[j] = temp;
+            }
+        }
+    }
+
+    int index;
+    for (index = 0; index < n; index++) {
+        if (requests[index] > head)
+            break;
+    }
+
+    for (int i = index; i < n; i++) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    for (int i = index - 1; i >= 0; i--) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    printf("LOOK Total Seek Count: %d\n", seek_count);
+}
+
+void clook(int requests[], int n, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (requests[i] > requests[j]) {
+                int temp = requests[i];
+                requests[i] = requests[j];
+                requests[j] = temp;
+            }
+        }
+    }
+
+    int index;
+    for (index = 0; index < n; index++) {
+        if (requests[index] > head)
+            break;
+    }
+
+    for (int i = index; i < n; i++) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    for (int i = 0; i < index; i++) {
+        cur_track = requests[i];
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    printf("CLOOK Total Seek Count: %d\n", seek_count);
+}
+
+int main() {
+    int n, head, disk_size;
+    int requests[100];
+
+    printf("Enter the number of requests: ");
+    scanf("%d", &n);
+
+    printf("Enter the request queue: ");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &requests[i]);
+    }
+
+    printf("Enter the initial head position: ");
+    scanf("%d", &head);
+
+    printf("Enter the disk size: ");
+    scanf("%d", &disk_size);
+
+    fcfs(requests, n, head);
+    sstf(requests, n, head);
+    scan(requests, n, head, disk_size);
+    cscan(requests, n, head, disk_size);
+    look(requests, n, head);
+    clook(requests, n, head);
+
+    return 0;
+}
+
+
+memory allocation
+
+#include <stdio.h>
+#include <stdlib.h>
+
+void first(int mem[], int pro[], int m, int p) {
+    int a[100], b[100];
+    int flag1[100], flag2[100];
+
+    for (int i = 0; i < m; i++) {
+        a[i] = mem[i];
+        flag1[i] = 0;
+    }
+    for (int i = 0; i < p; i++) {
+        b[i] = pro[i];
+        flag2[i] = 0;
+    }
+
+    printf("\nFirst Fit\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < m; j++) {
+            if (a[j] >= b[i] && flag1[j] != 1 && flag2[i] != 1) {
+                printf("Process %d is allocated to memory block %d. Wastage: %d\n", b[i], a[j], a[j] - b[i]);
+                flag1[j] = 1;
+                flag2[i] = 1;
+                break;
+            }
+        }
+        if (flag2[i] == 0) {
+            printf("Process %d could not be allocated.\n", b[i]);
+        }
+    }
+}
+
+void best(int mem[], int pro[], int m, int p) {
+    int a[100], b[100];
+    int flag1[100], flag2[100];
+
+    for (int i = 0; i < m; i++) {
+        a[i] = mem[i];
+        flag1[i] = 0;
+    }
+    for (int i = 0; i < p; i++) {
+        b[i] = pro[i];
+        flag2[i] = 0;
+    }
+
+    for (int i = 0; i < m - 1; i++) {
+        for (int j = 0; j < m - i - 1; j++) {
+            if (a[j] > a[j + 1]) {
+                int temp = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = temp;
+            }
+        }
+    }
+
+    printf("\nBest Fit\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < m; j++) {
+            if (a[j] >= b[i] && flag1[j] != 1 && flag2[i] != 1) {
+                printf("Process %d is allocated to memory block %d. Wastage: %d\n", b[i], a[j], a[j] - b[i]);
+                flag1[j] = 1;
+                flag2[i] = 1;
+                break;
+            }
+        }
+        if (flag2[i] == 0) {
+            printf("Process %d could not be allocated.\n", b[i]);
+        }
+    }
+}
+
+void worst(int mem[], int pro[], int m, int p) {
+    int a[100], b[100];
+    int flag1[100], flag2[100];
+
+    for (int i = 0; i < m; i++) {
+        a[i] = mem[i];
+        flag1[i] = 0;
+    }
+    for (int i = 0; i < p; i++) {
+        b[i] = pro[i];
+        flag2[i] = 0;
+    }
+
+    for (int i = 0; i < m - 1; i++) {
+        for (int j = 0; j < m - i - 1; j++) {
+            if (a[j] < a[j + 1]) {
+                int temp = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = temp;
+            }
+        }
+    }
+
+    printf("\nWorst Fit\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < m; j++) {
+            if (a[j] >= b[i] && flag1[j] != 1 && flag2[i] != 1) {
+                printf("Process %d is allocated to memory block %d. Wastage: %d\n", b[i], a[j], a[j] - b[i]);
+                flag1[j] = 1;
+                flag2[i] = 1;
+                break;
+            }
+        }
+        if (flag2[i] == 0) {
+            printf("Process %d could not be allocated.\n", b[i]);
+        }
+    }
+}
+
+int main() {
+    int process[100], memory[100];
+    int mloc, ploc;
+
+    printf("Enter total number of memory blocks: ");
+    scanf("%d", &mloc);
+
+    for (int i = 0; i < mloc; i++) {
+        printf("Enter size of Memory Block %d: ", i + 1);
+        scanf("%d", &memory[i]);
+    }
+
+    printf("Enter total number of processes: ");
+    scanf("%d", &ploc);
+
+    for (int j = 0; j < ploc; j++) {
+        printf("Enter size of Process %d: ", j + 1);
+        scanf("%d", &process[j]);
+    }
+
+    first(memory, process, mloc, ploc);
+    best(memory, process, mloc, ploc);
+    worst(memory, process, mloc, ploc);
+
+    return 0;
+}
+
+
+
